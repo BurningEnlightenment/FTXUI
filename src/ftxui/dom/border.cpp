@@ -13,8 +13,12 @@
 
 namespace ftxui {
 
-static std::string simple_border_charset[] = {"╭", "╮", "╰", "╯", "─",
-                                              "│", "┬", "┴", "┤", "├"};
+static std::string simple_border_charset[6][6] = {
+    {"┌", "┐", "└", "┘", "─", "│"},
+    {"┏", "┓", "┗", "┛", "━", "┃"},
+    {"╔", "╗", "╚", "╝", "═", "║"},
+    {"╭", "╮", "╰", "╯", "─", "│"},
+};
 
 // For reference, here is the charset for normal border:
 // {"┌", "┐", "└", "┘", "─", "│", "┬", "┴", "┤", "├"};
@@ -23,10 +27,10 @@ static std::string simple_border_charset[] = {"╭", "╮", "╰", "╯", "─",
 
 class Border : public Node {
  public:
-  Border(Elements children)
+  Border(Elements children, BorderStyle style)
       : Node(std::move(children)),
-        charset(std::begin(simple_border_charset),
-                std::end(simple_border_charset)) {}
+        charset(std::begin(simple_border_charset[style]),
+                std::end(simple_border_charset[style])) {}
   Border(Elements children, Pixel pixel)
       : Node(std::move(children)), charset_pixel(10, pixel) {}
 
@@ -136,7 +140,7 @@ class Border : public Node {
 /// └───────────┘
 /// ```
 Element border(Element child) {
-  return std::make_shared<Border>(unpack(std::move(child)));
+  return std::make_shared<Border>(unpack(std::move(child)), ROUNDED);
 }
 
 /// @brief Draw window with a title and a border around the element.
@@ -161,7 +165,8 @@ Element border(Element child) {
 /// └───────┘
 /// ```
 Element window(Element title, Element content) {
-  return std::make_shared<Border>(unpack(std::move(content), std::move(title)));
+  return std::make_shared<Border>(unpack(std::move(content), std::move(title)),
+                                  ROUNDED);
 }
 
 /// @brief Same as border but with a constant Pixel around the element.
@@ -170,6 +175,15 @@ Element window(Element title, Element content) {
 Decorator borderWith(Pixel pixel) {
   return [pixel](Element child) {
     return std::make_shared<Border>(unpack(std::move(child)), pixel);
+  };
+}
+
+/// @brief Same as border but with different styles.
+/// @ingroup dom
+/// @see border
+Decorator borderStyle(BorderStyle style) {
+  return [style](Element child) {
+    return std::make_shared<Border>(unpack(std::move(child)), style);
   };
 }
 
